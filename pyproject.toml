@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "railbench-benchmarksuite"
+version = "0.1.0"
+description = "RailBench Benchmark Suite"
+requires-python = ">=3.12"
+dependencies = [
+    "shapely",
+    "numpy",
+    "opencv-python",
+    "scikit-learn",
+    "scipy",
+    "networkx",
+    "matplotlib",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+# Discover all packages (Benchmarks, utils, etc.) from the repo root.
+include = ["Benchmarks*", "utils*"]

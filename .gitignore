@@ -1,0 +1,22 @@
+*.jpg
+*.png
+
+# Ignore Python bytecode cache
+**/__pycache__/
+*.py[cod]
+
+.vscode/*
+
+*.egg-info/
+*.egg
+.env
+.venv
+venv/
+.pytest_cache/
+*.log
+
+results/*
+!results/.gitkeep
+
+**/data/**
+**/results/**
