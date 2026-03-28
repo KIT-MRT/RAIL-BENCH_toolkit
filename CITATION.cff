@@ -1,0 +1,79 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "RAIL-BENCH Toolkit"
+abstract: "Official evaluation toolkit for RAIL-BENCH, the world's first perception benchmark suite for the railway domain. Includes evaluation scripts for rail track detection, object detection, and vegetation segmentation."
+version: "0.1.0"
+date-released: "2026-03-28"
+license: MIT
+url: "https://www.mrt.kit.edu/railbench/"
+repository-code: "https://github.com/KIT-MRT/RAIL-BENCH_toolkit"
+authors:
+  - family-names: "Bätz"
+    given-names: "Annika"
+    email: "annika.baetz@kit.edu"
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+  - family-names: "Klasek"
+    given-names: "P."
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+  - family-names: "Ham"
+    given-names: "S.-Y."
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+  - family-names: "Neumaier"
+    given-names: "P."
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+  - family-names: "Köppel"
+    given-names: "M."
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+  - family-names: "Lauer"
+    given-names: "M."
+    affiliation: "Karlsruhe Institute of Technology (KIT)"
+preferred-citation:
+  type: conference-paper
+  title: "Railway Artificial Intelligence Learning Benchmark (RAIL-BENCH): A Benchmark Suite for Perception in the Railway Domain"
+  authors:
+    - family-names: "Bätz"
+      given-names: "Annika"
+      email: "annika.baetz@kit.edu"
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+    - family-names: "Klasek"
+      given-names: "P."
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+    - family-names: "Ham"
+      given-names: "S.-Y."
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+    - family-names: "Neumaier"
+      given-names: "P."
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+    - family-names: "Köppel"
+      given-names: "M."
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+    - family-names: "Lauer"
+      given-names: "M."
+      affiliation: "Karlsruhe Institute of Technology (KIT)"
+  conference:
+    name: "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"
+  year: 2026
+  status: submitted
+  notes: "Submitted; currently under review."
+references:
+  - type: article
+    title: "A Comparative Analysis of Object Detection Metrics with a Companion Open-Source Toolkit"
+    authors:
+      - family-names: "Padilla"
+        given-names: "Rafael"
+      - family-names: "Passos"
+        given-names: "Wesley L."
+      - family-names: "Dias"
+        given-names: "Thadeu L. B."
+      - family-names: "Netto"
+        given-names: "Sergio L."
+      - family-names: "da Silva"
+        given-names: "Eduardo A. B."
+    journal: "Electronics"
+    volume: 10
+    issue: 3
+    start: 279
+    year: 2021
+    doi: "10.3390/electronics10030279"
+    scope: "Cite this work if you publish results using the RAIL-BENCH Object evaluation or the AP computation in RAIL-BENCH Rail."

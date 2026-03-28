@@ -1,0 +1,58 @@
+RAIL-BENCH Toolkit
+Copyright (c) 2026 KIT-MRT
+
+This product is licensed under the MIT License.
+See the LICENSE file for the full license text.
+
+-------------------------------------------------------------------------------
+Third-Party Component: review_object_detection_metrics
+-------------------------------------------------------------------------------
+
+Portions of this software are derived from the `review_object_detection_metrics`
+project by Rafael Padilla and contributors.
+
+  Original source:   https://github.com/rafaelpadilla/review_object_detection_metrics
+  Original license:  MIT License
+  Copyright (c) 2020 Rafael Padilla
+
+The MIT License text:
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+Affected files:
+  - Benchmarks/RAILBENCH_Object/metrics/bounding_box.py
+  - Benchmarks/RAILBENCH_Object/metrics/enumerators.py
+  - Benchmarks/RAILBENCH_Object/metrics/general_utils.py
+  - Benchmarks/RAILBENCH_Object/metrics/rb_evaluator.py
+  - Benchmarks/RAILBENCH_Rail/metrics/LineAP/line_ap_metric.py (partial)
+  - Benchmarks/RAILBENCH_Rail/metrics/ChamferAP/chamfer_ap.py (partial)
+
+Citation requirement (per the original project's additional clauses):
+
+  The original project requires that anyone who publishes results produced
+  by software incorporating this code must cite the following work. This
+  obligation passes through to users of the RAIL-BENCH Toolkit: if you
+  publish results from the RAIL-BENCH Object benchmark (or any other part
+  of this toolkit that uses the above code), please cite:
+
+    Padilla R, Passos WL, Dias TLB, Netto SL, da Silva EAB.
+    A Comparative Analysis of Object Detection Metrics with a Companion
+    Open-Source Toolkit.
+    Electronics. 2021; 10(3):279.
+    https://doi.org/10.3390/electronics10030279

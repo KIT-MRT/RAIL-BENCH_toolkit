@@ -98,3 +98,42 @@ cd Benchmarks/RAILBENCH_Vegetation
 python run_veg_eval.py [-h] [--split SPLIT] [--pred_path PRED_PATH] [--gt_path GT_PATH] [--expected_num_gt_files EXPECTED_NUM_GT_FILES] [--project_name PROJECT_NAME] [--overwrite]
 ```
 
+## Citation
+
+If you use this software, please cite our work:
+
+```bibtex
+@article{baetz2026railbench,
+  title   = {Railway Artificial Intelligence Learning Benchmark (RAIL-BENCH): A Benchmark Suite for Perception in the Railway Domain},
+  author  = {B{\"a}tz, Annika and Klasek, P. and Ham, S.-Y. and Neumaier, P. and K{\"o}ppel, M. and Lauer, M.},
+  note    = {Submitted to IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Under review.},
+  year    = {2026}
+}
+```
+
+See [`CITATION.cff`](CITATION.cff) for a machine-readable citation file.
+
+Additionally, the **RAIL-BENCH Object** evaluation (and the AP computation in **RAIL-BENCH Rail**) builds on code from Rafael Padilla's [`review_object_detection_metrics`](https://github.com/rafaelpadilla/review_object_detection_metrics). If you publish results produced with these parts of the toolkit, please also cite:
+
+```bibtex
+@article{padilla2021comparative,
+  title   = {A Comparative Analysis of Object Detection Metrics with a Companion Open-Source Toolkit},
+  author  = {Padilla, Rafael and Passos, Wesley L. and Dias, Thadeu L. B. and Netto, Sergio L. and da Silva, Eduardo A. B.},
+  journal = {Electronics},
+  volume  = {10},
+  number  = {3},
+  pages   = {279},
+  year    = {2021},
+  doi     = {10.3390/electronics10030279}
+}
+```
+
+See the [`NOTICE`](NOTICE) file for full details on this obligation.
+
+## License & Acknowledgements
+
+This project is licensed under the **MIT License** — see the [`LICENSE`](LICENSE) file for details.
+
+Portions of this software are derived from third-party open-source projects.
+See the [`NOTICE`](NOTICE) file for full attribution and their license terms.
+
