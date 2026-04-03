@@ -39,20 +39,25 @@ This installs the package in editable mode along with all required dependencies:
 
 # 2 Format checks
 
-We provide format checks to ensure that your prediction files are correctly formated. The functions both check the general formatting, but also provide specific checks for the respective RAIl-BENCH challenges. 
+We provide format checks to ensure that your prediction files are correctly formated. The functions both check the general formatting, but also provide specific checks for the respective RAIL-BENCH challenges. 
 
 > **💡 Tip:** If you want to participate in a challenge, we advise you to check if your submission file is correctly formatted using the respective `check_formatting.py` function before submission. For some of the challenges you can find a folder `format` with a guide on the correct formatting. 
 
-Currently, we only provide a check function for the RAIL-BENCH Rail challenge, but more will follow. 
+Currently, we only provide a check function for the RAIL-BENCH Rail and Object challenge, but more will follow. 
 
-## 2.1 RAIL-BENCH Rail
+## 2.1 RAIL-BENCH Rail and RAIL-BENCH Object
 
 Use the function `check_formatting.py` to check whether you submission file is correctly formated. 
  - with `PRED_FILE` you specify the path to your json file. 
- - optionally: set the `--is_railbench_test` flag if you have a submission to the RAIL-BENCH Rail challenge, this will initate additional checks.
+ - optionally: set the `--is_railbench_test` flag if you have a submission to the RAIL-BENCH challenge, this will initate additional checks.
 
 ```bash
-cd Benchmarks/RAILBENCH_Rail
+cd Benchmarks/RAILBENCH_Rail 
+# or 
+cd Benchmarks/RAILBENCH_Object 
+```
+
+```bash
 check_formatting.py [-h] [--pred_file PRED_FILE] [--is_railbench_test]
 ```
 
