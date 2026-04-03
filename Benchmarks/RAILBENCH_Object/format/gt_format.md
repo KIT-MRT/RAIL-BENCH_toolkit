@@ -8,7 +8,11 @@
   "categories": [
     {"id": 1, "name": "train"},
     {"id": 2, "name": "catenary_pole"},
-    ...
+    {"id": 3, "name": "signal_pole"},
+    {"id": 4,"name": "signal"},
+    {"id": 5,"name": "person"},
+    {"id": 6,"name": "road_vehicle"},
+    {"id": 7,"name": "bicycle"}
   ],
   "annotations": [
     {"id": <annotation_id>,
