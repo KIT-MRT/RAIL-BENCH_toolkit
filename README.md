@@ -10,6 +10,15 @@ It includes evaluation scripts for all five RAIL-BENCH challenges:
 - **RAIL-BENCH Tracking**: Multi Object Tracking *(coming soon)*
 - **RAIL-BENCH Odometry**: Monocular Visual Odometry *(coming soon)*
 
+-----
+This readme is structured as follows:
+
+1. [Getting Started](#1-getting-started): how to set up your python environment
+2. [Visualize Annotations](#2-visualize-annotations): guide for visualizing annotations 
+3. [Format Checks](#3-format-checks): guide for checking the format of your predictions before submission
+4. [Running an Evaluation](#4-running-an-evaluation): run evaluation with the official RAIL-BENCH evaluation metrics
+5. [Citations](#5-citation)
+
 
 # 1 Getting Started
 
@@ -28,6 +37,13 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
+or using a conda environment
+
+```bash
+conda create -n railbench_toolkit python=3.12 -y
+conda activate railbench_toolkit
+```
+
 **2. Install the benchmark suite and all dependencies:**
 
 ```bash
@@ -37,7 +53,22 @@ pip install -e .
 This installs the package in editable mode along with all required dependencies:
 [`shapely`](https://shapely.readthedocs.io/), [`numpy`](https://numpy.org/), [`opencv-python`](https://pypi.org/project/opencv-python/), [`scikit-learn`](https://scikit-learn.org/), [`scipy`](https://scipy.org/), [`networkx`](https://networkx.org/), [`matplotlib`](https://matplotlib.org/), [`tqdm`](https://tqdm.github.io/).
 
-# 2 Format checks
+# 2 Visualize Annotations
+
+To visualize the annotations use the functions in the folder annotation_visualizer. 
+
+How to visualize rails: 
+
+```bash
+python annotation_visualizer/visualize_rails.py 
+  --annotations your_annotation_path/annotations_train.json 
+  --image_dir your_image_path/val
+```
+
+Visualization tools for the other benchmarks will follow soon ...
+
+
+# 3 Format checks
 
 We provide format checks to ensure that your prediction files are correctly formated. Depending on the challenge, the functions check the general formatting and/or provide specific checks for the respective RAIL-BENCH challenges. 
 
@@ -45,7 +76,7 @@ We provide format checks to ensure that your prediction files are correctly form
 
 Currently, we only provide a check function for the RAIL-BENCH Rail, Object, and Vegetation challenge, but more will follow. 
 
-## 2.1 RAIL-BENCH Rail and RAIL-BENCH Object
+## 3.1 RAIL-BENCH Rail and RAIL-BENCH Object
 
 ### Preparation
 
@@ -68,7 +99,7 @@ Use the respective `check_formatting.py` function to check whether your JSON fil
 python check_formatting.py [-h] [--pred_file PRED_FILE] [--is_railbench_test]
 ```
 
-## 2.2 RAIL-BENCH Vegetation
+## 3.2 RAIL-BENCH Vegetation
 
 ### Preparation
 
@@ -87,9 +118,9 @@ With `PRED_PATH` you specify the path to the folder with your predicted masks.
 python check_formatting.py [-h] [--pred_path PRED_PATH]
 ```
 
-# 3 Running an Evaluation
+# 4 Running an Evaluation
 
-## 3.1 RAIL-BENCH Rail
+## 4.1 RAIL-BENCH Rail
 
 **1. Prepare evaluation**
 
@@ -122,7 +153,7 @@ python run_rail_eval.py [-h] [--metric {ChamferAP,LineAP}] [--project PROJECT] [
 
 The results are placed in a new folder `results` in your project folder. 
 
-## 3.2 RAIL-BENCH Object
+## 4.2 RAIL-BENCH Object
 
 **1. Prepare evaluation**
 
@@ -137,7 +168,7 @@ python run_object_eval.py [-h] [--project PROJECT] [--overwrite]
 
 The results are placed in a new folder `results` in your project folder. 
 
-## 3.3 RAIL-BENCH Vegetation
+## 4.3 RAIL-BENCH Vegetation
 
 For evaluation you need to specify the path to your ground truth masks (`gt_path`) and predicted masks (`pred_path`) as well as which `split` you are evaluating on. Note, that the evaluation script assumes to find a folder named as the specific `split` (e.g. `val`) under `gt_path` and `pred_path`. 
 
@@ -148,16 +179,19 @@ cd Benchmarks/RAILBENCH_Vegetation
 python run_veg_eval.py [-h] [--split SPLIT] [--pred_path PRED_PATH] [--gt_path GT_PATH] [--expected_num_gt_files EXPECTED_NUM_GT_FILES] [--project_name PROJECT_NAME] [--overwrite]
 ```
 
-# 4 Citation
+# 5 Citation
 
 If you use this software, please cite our work:
 
 ```bibtex
-@article{baetz2026railbench,
-  title   = {Railway Artificial Intelligence Learning Benchmark (RAIL-BENCH): A Benchmark Suite for Perception in the Railway Domain},
-  author  = {B{\"a}tz, Annika and Klasek, P. and Ham, S.-Y. and Neumaier, P. and K{\"o}ppel, M. and Lauer, M.},
-  note    = {Submitted to IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Under review.},
-  year    = {2026}
+@misc{bätz2026railwayartificialintelligencelearning,
+      title={Railway Artificial Intelligence Learning Benchmark (RAIL-BENCH): A Benchmark Suite for Perception in the Railway Domain}, 
+      author={Annika Bätz and Pavel Klasek and Seo-Young Ham and Philipp Neumaier and Martin Köppel and Martin Lauer},
+      year={2026},
+      eprint={2604.22507},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2604.22507}, 
 }
 ```
 

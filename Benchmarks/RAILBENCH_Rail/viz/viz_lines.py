@@ -6,31 +6,35 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib import colormaps
 
-from Benchmarks.RAILBENCH_Rail.viz.colors import *
+from utils.viz.colors import BRIGHT_COLORS_RGB, hex_to_rgb
 
-def draw_polyline(img, lane, color, thickness=4, dashed=False, dash_len=20):
-    """Draw a polyline onto img in-place. Optionally dashed."""
-    if isinstance(color, str):
-        color = hex_to_rgb(color)
 
-    pts = [(int(round(u)), int(round(v))) for u, v in lane]
-    if dashed:
-        for p1, p2 in zip(pts[:-1], pts[1:]):
-            # Subdivide each segment into dash / gap pairs
-            dx = p2[0] - p1[0]
-            dy = p2[1] - p1[1]
-            seg_len = max(1, int(np.hypot(dx, dy)))
-            steps = seg_len // dash_len
-            for k in range(steps):
-                if k % 2 == 0:          # even → draw, odd → skip
-                    t0, t1 = k / steps, (k + 1) / steps
-                    a = (int(p1[0] + t0 * dx), int(p1[1] + t0 * dy))
-                    b = (int(p1[0] + t1 * dx), int(p1[1] + t1 * dy))
-                    cv2.line(img, a, b, color, thickness, cv2.LINE_AA)
-    else:
-        pts = np.array(pts).astype(np.int32)
-        cv2.polylines(img, [pts], isClosed=False, color=color, thickness=thickness)
+def railbench_preparation(annotations, image_id=1):
+    """
+    Takes railbench rail annotations and extracts rails and ignore areas for a given image_id.
 
+    Args:
+    ------
+    annotations: dict containing the annotations loaded from the railbench json file
+    image_id: id of the image for which to extract the rails and ignore areas
+    """
+
+    rails = []
+    ignore_areas = []
+
+    assert annotations['categories'][0]['id'] == 1 and annotations['categories'][0]['name'] == 'rail', "Expected category id 1 to be 'rail'"
+    assert annotations['categories'][1]['id'] == 2 and annotations['categories'][1]['name'] == 'ignore_area', "Expected category id 2 to be 'ignore area'"
+
+    for ann in annotations['annotations']:
+        if ann['image_id'] == image_id:
+            if ann['category_id'] == 1: # rail
+                rails.append(ann['polyline'])
+            elif ann['category_id'] == 2: # ignore area
+                ignore_areas.append(ann['polygon'])
+
+    return rails, ignore_areas
+
+#-------------------------------------------------------------------
 
 def visualize_tracks(img, rails, 
                      ignore_areas=None, add_ignore_areas_flag=True,
@@ -50,10 +54,11 @@ def visualize_tracks(img, rails,
             cv2.polylines(img, [pts], isClosed=True, color=color_ignore_area, thickness=1)
         img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
 
+    # add rails
     for i, rail in enumerate(rails):
         pts = np.array(rail).astype(np.int32)
         if instance_coloring:
-            c = BRIGHT_COLORS_BGR[i % len(BRIGHT_COLORS_BGR)]
+            c = BRIGHT_COLORS_RGB[i % len(BRIGHT_COLORS_RGB)]
         else:
             c = color_rail
 
@@ -71,80 +76,5 @@ def visualize_tracks(img, rails,
 
     return img
 
-def draw_polyline1(img, lines, color=(255,   0, 128), single_color=True, thickness=10, add_dots=True):
-    for i, l in enumerate(lines):    
-        if not single_color:
-            color = BRIGHT_COLORS_BGR[i % len(BRIGHT_COLORS_BGR)]
 
-        cv2.polylines(img, [np.array(l, dtype=int)], isClosed=False, color=color, thickness=thickness)
-
-        if add_dots:
-            for pt in l:
-                cv2.circle(
-                    img,
-                    center=np.array(pt, dtype=int).tolist(),
-                    radius=10,
-                    color=(255, 0, 0),  # red dots
-                    thickness=-1  # filled
-                )
-    return img
-
-def add_ignore_areas(img, ignore_areas, color=(0, 0, 255), alpha=0.2):
-    overlay = img.copy()
-    for area in ignore_areas:
-        cv2.fillPoly(overlay, [np.array(area, dtype=int)], color)
-    return cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
-
-def draw_oriented_polylines(ax, lines, color, s_marker=5, s_arrow=15, zorder=1):
-    """
-    Draws oriented polylines on the given axis.
-    Sets points and arrows. 
-
-    Args:
-    ------
-    ax: matplotlib axis
-
-    lines: list of lists of points (u, v)
-
-    color: color of the lines
-
-    s_marker: size of the points
-
-    s_arrow: size of the arrows
-
-    """
-
-    color = [v / 255 for v in color] 
-
-
-    for i, l in enumerate(lines):    
-
-        for pt in l:
-            
-            ax.scatter(pt[0], pt[1], color=color, s=s_marker, zorder=zorder)
-
-        for i in range(len(l)-1):
-            ax.annotate('', 
-                xytext=l[i], # start arrow
-                xy=l[i+1], # end arrow
-                arrowprops=dict(arrowstyle="->", color=color),
-                size=s_arrow, zorder=zorder)
-
-
-def railbench_preparation(annotations, image_id=1):
-
-    rails = []
-    ignore_areas = []
-
-    assert annotations['categories'][0]['id'] == 1 and annotations['categories'][0]['name'] == 'rail', "Expected category id 1 to be 'rail'"
-    assert annotations['categories'][1]['id'] == 2 and annotations['categories'][1]['name'] == 'ignore_area', "Expected category id 2 to be 'ignore area'"
-
-    for ann in annotations['annotations']:
-        if ann['image_id'] == image_id:
-            if ann['category_id'] == 1: # rail
-                rails.append(ann['polyline'])
-            elif ann['category_id'] == 2: # ignore area
-                ignore_areas.append(ann['polygon'])
-
-    return rails, ignore_areas
 
