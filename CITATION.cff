@@ -29,7 +29,7 @@ authors:
     given-names: "M."
     affiliation: "Karlsruhe Institute of Technology (KIT)"
 preferred-citation:
-  type: conference-paper
+  type: article
   title: "Railway Artificial Intelligence Learning Benchmark (RAIL-BENCH): A Benchmark Suite for Perception in the Railway Domain"
   authors:
     - family-names: "Bätz"
@@ -51,11 +51,12 @@ preferred-citation:
     - family-names: "Lauer"
       given-names: "M."
       affiliation: "Karlsruhe Institute of Technology (KIT)"
-  conference:
-    name: "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"
+  journal: "arXiv preprint"
   year: 2026
-  status: submitted
-  notes: "Submitted; currently under review."
+  url: "https://arxiv.org/abs/2604.22507"
+  identifiers:
+    - type: other
+      value: "arXiv:2604.22507"
 references:
   - type: article
     title: "A Comparative Analysis of Object Detection Metrics with a Companion Open-Source Toolkit"
