@@ -276,6 +276,26 @@ Additionally, the **RAIL-BENCH Object** evaluation (and the AP computation in **
 }
 ```
 
+The **RAIL-BENCH Tracking** evaluation builds on code from Jonathon Luiten's [`TrackEval`](https://github.com/JonathonLuiten/TrackEval). If you publish results produced with this part of the toolkit, please also cite:
+
+```bibtex
+@misc{luiten2020trackeval,
+  author =       {Jonathon Luiten, Arne Hoffhues},
+  title =        {TrackEval},
+  howpublished = {\url{https://github.com/JonathonLuiten/TrackEval}},
+  year =         {2020}
+}
+
+@article{luiten2020IJCV,
+  title={HOTA: A Higher Order Metric for Evaluating Multi-Object Tracking},
+  author={Luiten, Jonathon and Osep, Aljosa and Dendorfer, Patrick and Torr, Philip and Geiger, Andreas and Leal-Taix{\'e}, Laura and Leibe, Bastian},
+  journal={International Journal of Computer Vision},
+  pages={1--31},
+  year={2020},
+  publisher={Springer}
+}
+```
+
 See the [`NOTICE`](NOTICE) file for full details on this obligation.
 
 ## License & Acknowledgements

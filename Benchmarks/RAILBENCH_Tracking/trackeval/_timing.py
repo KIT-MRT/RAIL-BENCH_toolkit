@@ -1,3 +1,6 @@
+# Portions of this file are derived from TrackEval:
+# https://github.com/JonathonLuiten/TrackEval
+# Original license: MIT License (see repository NOTICE file for details).
 from functools import wraps
 from time import perf_counter
 import inspect

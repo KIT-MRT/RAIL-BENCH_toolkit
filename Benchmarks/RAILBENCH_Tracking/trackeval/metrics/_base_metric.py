@@ -1,4 +1,6 @@
-
+# Portions of this file are derived from TrackEval:
+# https://github.com/JonathonLuiten/TrackEval
+# Original license: MIT License (see repository NOTICE file for details).
 import numpy as np
 from abc import ABC, abstractmethod
 from .. import _timing

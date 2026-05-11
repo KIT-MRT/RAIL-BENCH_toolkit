@@ -4,6 +4,9 @@ import argparse
 
 from Benchmarks.RAILBENCH_Tracking import trackeval
 
+# The tracking evaluation backend is adapted from TrackEval:
+# https://github.com/JonathonLuiten/TrackEval
+
 if __name__ == "__main__":
 
     # process command line arguments and set default configs for evaluation
