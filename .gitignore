@@ -19,6 +19,9 @@ results/*
 !results/.gitkeep
 
 **/data/**
+!Benchmarks/RAILBENCH_Object/data/.gitkeep
+!Benchmarks/RAILBENCH_Rail/data/.gitkeep
+!Benchmarks/RAILBENCH_Tracking/data/.gitkeep
 **/results/**
 
 **/error_log.txt
