@@ -20,3 +20,5 @@ results/*
 
 **/data/**
 **/results/**
+
+**/error_log.txt

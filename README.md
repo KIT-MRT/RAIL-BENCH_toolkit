@@ -7,7 +7,7 @@ It includes evaluation scripts for all five RAIL-BENCH challenges:
 - **RAIL-BENCH Rail**: Rail Track Detection
 - **RAIL-BENCH Object**: Object Detection
 - **RAIL-BENCH Vegetation**: Vegetation Segmentation
-- **RAIL-BENCH Tracking**: Multi Object Tracking *(coming soon)*
+- **RAIL-BENCH Tracking**: Multi Object Tracking
 - **RAIL-BENCH Odometry**: Monocular Visual Odometry *(coming soon)*
 
 -----
@@ -74,7 +74,7 @@ We provide format checks to ensure that your prediction files are correctly form
 
 > **💡 Tip:** If you want to participate in a challenge, we advise you to check if your predictions are correctly formatted using the respective `check_formatting.py` function before submission. For all challenges you can find a folder `format` with a guide on the correct formatting. 
 
-Currently, we only provide a check function for the RAIL-BENCH Rail, Object, and Vegetation challenge, but more will follow. 
+Currently, a check function is missing for the RAIL-BENCH odometry is missing, but will follow soon.  
 
 ## 3.1 RAIL-BENCH Rail and RAIL-BENCH Object
 
@@ -91,7 +91,7 @@ cd Benchmarks/RAILBENCH_Object
 ```
 
 Use the respective `check_formatting.py` function to check whether your JSON file is correctly formated. 
- - with `PRED_FILE` you specify the path to your json file. 
+ - with `pred_file` you specify the path to your json file. 
  - optionally: set the `--is_railbench_test` flag if you have a submission to the RAIL-BENCH challenge, this will initate additional checks.
 
 
@@ -112,10 +112,32 @@ cd Benchmarks/RAILBENCH_Vegetation
 ```
 
 Use the function `check_formatting.py` to check whether you submission file is correctly formated. 
-With `PRED_PATH` you specify the path to the folder with your predicted masks. 
+With `pred_path` you specify the path to the folder with your predicted masks. 
 
 ```bash
 python check_formatting.py [-h] [--pred_path PRED_PATH]
+```
+
+## 3.3 RAIL-BENCH Tracking
+
+### Preparation
+
+Save all predictions for each sequence in an individual JSON file and place all JSON files in a single folder. Follow the rules in `Benchmarks/RAILBENCH_Tracking/format/pred_format.md`.
+
+If you submission is for the RAIL-BENCH tracking challenge, name the files: 'scene_31_test.json', 'scene_32_test.json', 'scene_33_test.json', and 'scene_34_test.json'. 
+
+### Run the check
+
+```bash
+cd Benchmarks/RAILBENCH_Tracking
+```
+
+Use the function `check_formatting.py` to check whether you submission file is correctly formated. 
+- with `pred_path` you specify the path to the folder with your JSON files. 
+- optionally: set the `--is_railbench_test` flag if you have a submission to the RAIL-BENCH challenge, this will initate additional checks.
+
+```bash
+python check_formatting.py [-h] [--pred_path PRED_PATH] [--is_railbench_test]
 ```
 
 # 4 Running an Evaluation
@@ -178,6 +200,48 @@ With `expected_num_gt_files` you have the option to perform a sanity check on th
 cd Benchmarks/RAILBENCH_Vegetation
 python run_veg_eval.py [-h] [--split SPLIT] [--pred_path PRED_PATH] [--gt_path GT_PATH] [--expected_num_gt_files EXPECTED_NUM_GT_FILES] [--project_name PROJECT_NAME] [--overwrite]
 ```
+
+## 4.4 RAIL-BENCH Tracking
+
+**1. Prepare evaluation**
+
+- Create a project folder inside `Benchmarks/RAILBENCH_Tracking/data/` (e.g. `my_project`) with two subfolders: `gt/` and `trackers/`.
+- For each video sequence, put your corresponing ground-truth file in the `gt/` folder.
+- For each tracker that you want to evaluate (e.g. `TrackerA`), create the subfolders `trackers/TrackerA/data` and add that tracker's prediction files inside this new subfolder `data`.
+- Naming convention: All files (gt and predictions) that correspond to the same sequence must have the same name. 
+- Make sure all ground-truth and prediction files follow the formats described in `Benchmarks/RAILBENCH_Tracking/format/gt_format.md` and `Benchmarks/RAILBENCH_Tracking/format/pred_format.md`, respectively. 
+
+The `Benchmarks/RAILBENCH_Tracking/data/` folder could then look like this: 
+
+```text
+Benchmarks/RAILBENCH_Tracking/data/
+└── my_project/
+    ├── gt/
+    │   ├── scene_31_test.json         # ground-truth file for sequence 31
+    │   ├── scene_32_test.json         # ground-truth file for sequence 32
+    │   └── ...
+    └── trackers/
+        ├── TrackerA/
+        │   └── data/                    
+        │     ├── scene_31_test.json         # predictions by TrackerA for sequence 31
+        │     ├── scene_32_test.json         # predictions by TrackerA for sequence 32
+        │     └── ...
+        ├── TrackerB/
+        │     ├── scene_31_test.json         # predictions by TrackerB for sequence 31
+        │     ├── scene_32_test.json         # predictions by TrackerB for sequence 32
+        │     └── ...
+      ...
+```
+
+**2. Run evaluation**
+
+```bash
+cd Benchmarks/RAILBENCH_Tracking
+python run_tracking_eval.py [-h] [--project my_project]
+```
+
+You can find the results within each trackers' subfolder as well as combined in `Benchmarks/RAILBENCH_Tracking/data/my_project/`. 
+
 
 # 5 Citation
 
