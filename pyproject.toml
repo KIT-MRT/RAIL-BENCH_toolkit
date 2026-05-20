@@ -19,6 +19,9 @@ dependencies = [
     "tqdm",
 ]
 
+[project.scripts]
+rb-viz-rails = "annotation_visualizer.visualize_rails:main"
+
 [tool.setuptools]
 include-package-data = true
 
