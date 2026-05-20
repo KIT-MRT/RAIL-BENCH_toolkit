@@ -24,7 +24,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 # Discover all packages (Benchmarks, utils, etc.) from the repo root.
-include = ["Benchmarks*", "utils*"]
+include = ["Benchmarks*", "utils*", "annotation_visualizer*"]
 namespaces = true
 
 [tool.setuptools.package-data]
