@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import cv2
 import numpy as np
 
-from Benchmarks.RAILBENCH_Rail.viz.viz_lines import visualize_tracks, railbench_preparation
+from Benchmarks.RAILBENCH_Rail.viz.viz_lines import visualize_tracks, rb_anns_preparation
 from utils.viz.viz_image import image_preparation
 from utils.helpers import load_json
 
@@ -73,8 +73,8 @@ def main():
 
         try:
             image = image_preparation(image_path)
-            rails, ignore_areas = railbench_preparation(anns, image_id=image_id)
-            img_viz = visualize_tracks(image, rails, ignore_areas, instance_coloring=True)
+            rails, ignore_areas = rb_anns_preparation(anns, image_id=image_id)
+            img_viz = visualize_tracks(image, rails, track_ids=None, ignore_areas=ignore_areas, color_mode='instance')
             img_bgr = cv2.cvtColor(np.array(img_viz), cv2.COLOR_RGB2BGR)
         except Exception as e:
             print(f"\nError processing {file_name}: {e}")

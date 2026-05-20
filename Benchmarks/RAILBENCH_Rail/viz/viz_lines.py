@@ -1,15 +1,10 @@
-import os 
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
-import matplotlib.colors as mcolors
-from matplotlib import colormaps
-
-from utils.viz.colors import BRIGHT_COLORS_RGB, hex_to_rgb
+from utils.viz.colors import BRIGHT_COLORS_RGB
 
 
-def railbench_preparation(annotations, image_id=1):
+def rb_anns_preparation(annotations, image_id=1):
     """
     Takes railbench rail annotations and extracts rails and ignore areas for a given image_id.
 
@@ -36,13 +31,47 @@ def railbench_preparation(annotations, image_id=1):
 
 #-------------------------------------------------------------------
 
-def visualize_tracks(img, rails, 
+def visualize_tracks(img, rails, track_ids=None,
                      ignore_areas=None, add_ignore_areas_flag=True,
+                     color_mode = 'instance',
                      color_rail = (255, 0, 238),
                      color_ignore_area = (51, 255, 255),
-                     instance_coloring=False, thickness=5, 
+                     thickness=5, 
                      plot_arrows = False,
                      plot_keypoints = False):
+    """
+    Add rails and ignore areas to the image. Ignore areas can be added as semi-transparent overlays.
+
+    There are three modes for coloring the rails: 'instance', 'single' and 'track'.
+    If 'instance', each rail gets a different color (randomly assigned from a predefined list of bright colors).
+    If 'single', all rails get the same color specified by color_rail.
+    If 'track', rails are colored according to their track id (requires track_ids to be provided).
+
+    Args:
+    -------
+    img: input image (numpy array) in RGB format
+    rails: list of rails, where each rail is a list of [u, v] coordinates, i.e. [ [[u1, v1], [u2, v2], ...], [...], ... ]
+    track_ids: list of track ids corresponding to the rails (optional)
+    ignore_areas: list of ignore areas, where each area is a list of [u, v] coordinates, i.e. [ [[u1, v1], [u2, v2], ...], [...], ... ]
+    add_ignore_areas_flag: flag to indicate whether to add ignore areas to the image
+    color_mode: mode for coloring rails ('instance', 'single', or 'track')
+    color_rail: color of the rails in BGR format (default magenta)
+    color_ignore_area: color of the ignore areas in BGR format (default cyan)
+    thickness: thickness of the rail lines
+    plot_arrows: flag to indicate whether to display each polyline as arrows between consecutive anchor points 
+    plot_keypoints: flag to indicate whether to plot anchor points of polylines 
+
+    returns:
+    -------
+    img: output image (numpy array) in RGB format
+    """
+
+    if track_ids is not None:
+        assert len(track_ids) == len(rails), "Length of track_ids must match length of rails"
+        assert all(isinstance(tid, int) for tid in track_ids), "All elements in track_ids must be integers"
+    assert color_mode in ['instance', 'single', 'track'], "color_mode must be either 'instance', 'single' or 'track'"
+    if color_mode == 'track':
+        assert track_ids is not None, "track_ids must be provided when color_mode is 'track'"
 
     # add ignore areas 
     if ignore_areas is not None and add_ignore_areas_flag:
@@ -57,8 +86,10 @@ def visualize_tracks(img, rails,
     # add rails
     for i, rail in enumerate(rails):
         pts = np.array(rail).astype(np.int32)
-        if instance_coloring:
+        if color_mode == 'instance':
             c = BRIGHT_COLORS_RGB[i % len(BRIGHT_COLORS_RGB)]
+        elif color_mode == 'track':
+            c = BRIGHT_COLORS_RGB[track_ids[i] % len(BRIGHT_COLORS_RGB)]
         else:
             c = color_rail
 
