@@ -2,13 +2,14 @@
 
 This is the official toolbox for [RAIL-BENCH](https://www.mrt.kit.edu/railbench/), the world's first perception benchmark suite for the railway. 
 
-It includes evaluation scripts for all five RAIL-BENCH challenges:
+It includes evaluation scripts for **four** of the **five** RAIL-BENCH challenges:
 
 - **RAIL-BENCH Rail**: Rail Track Detection
 - **RAIL-BENCH Object**: Object Detection
 - **RAIL-BENCH Vegetation**: Vegetation Segmentation
 - **RAIL-BENCH Tracking**: Multi Object Tracking
-- **RAIL-BENCH Odometry**: Monocular Visual Odometry *(coming soon)*
+
+The tools for the **RAIL-BENCH Odometry** challenge can be found here: [RAIL-BENCH Odometry](https://github.com/KIT-MRT/RAIL-BENCH_odometry).
 
 -----
 This readme is structured as follows:
@@ -74,7 +75,6 @@ We provide format checks to ensure that your prediction files are correctly form
 
 > **💡 Tip:** If you want to participate in a challenge, we advise you to check if your predictions are correctly formatted using the respective `check_formatting.py` function before submission. For all challenges you can find a folder `format` with a guide on the correct formatting. 
 
-Currently, a check function is missing for the RAIL-BENCH odometry is missing, but will follow soon.  
 
 ## 3.1 RAIL-BENCH Rail and RAIL-BENCH Object
 
