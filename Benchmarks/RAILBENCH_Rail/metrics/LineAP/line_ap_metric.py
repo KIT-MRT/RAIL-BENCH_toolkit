@@ -8,6 +8,7 @@ from networkx.algorithms import bipartite
 
 from Benchmarks.RAILBENCH_Rail.metrics.LineAP.polyline_sampling import point_sampling, segment_sampling, segment_in_ignore
 from Benchmarks.RAILBENCH_Rail.metrics.LineAP.visualizations import visualize_segmentwise_evaluation
+from Benchmarks.RAILBENCH_Rail.metrics.ap_utils import calculate_ap_every_point
 from tqdm import tqdm
 
 class LineAP:
@@ -211,7 +212,7 @@ class LineAP:
             rec = acc_TP / n_gt
             prec = np.divide(acc_TP, (acc_FP + acc_TP))
 
-            [ap, mpre, mrec, ii] = self.calculate_ap_every_point(rec, prec)
+            [ap, mpre, mrec, ii] = calculate_ap_every_point(rec, prec)
 
             ap_list.append(ap)
             self.results[result_key]['AP'] = ap
@@ -235,10 +236,9 @@ class LineAP:
             else:
                 if k.startswith("rel_dist_thres_"):
                     d_t = float(k.split("_")[-1])
-                    if d_t < 1:
-                        print(f"Relative distance threshold: {d_t}")
-                    else:
-                        print(f"Distance threshold: {d_t} px")
+                    print(f"Relative distance threshold: {d_t}")
+                else:
+                    print(f"Distance threshold: {d_t} px")
 
                 print(f"AP: {res['AP']:.2f}")
                 print(f"Average matching distance: {res['avg_match_dist']:.2f}")
@@ -773,31 +773,6 @@ class LineAP:
                 matched_nodes.add(v)
 
         return matching
-
-
-    @staticmethod
-    def calculate_ap_every_point(rec, prec):
-        """
-        This function is from https://github.com/rafaelpadilla/review_object_detection_metrics/blob/main/src/evaluators/pascal_voc_evaluator.py
-        """
-        mrec = []
-        mrec.append(0)
-        [mrec.append(e) for e in rec]
-        mrec.append(1)
-        mpre = []
-        mpre.append(0)
-        [mpre.append(e) for e in prec]
-        mpre.append(0)
-        for i in range(len(mpre) - 1, 0, -1):
-            mpre[i - 1] = max(mpre[i - 1], mpre[i])
-        ii = []
-        for i in range(len(mrec) - 1):
-            if mrec[1:][i] != mrec[0:-1][i]:
-                ii.append(i + 1)
-        ap = 0
-        for i in ii:
-            ap = ap + np.sum((mrec[i] - mrec[i - 1]) * mpre[i])
-        return [ap, mpre[0:len(mpre) - 1], mrec[0:len(mpre) - 1], ii]
 
 
     def plot_evaluation(self, img_ident, image_dir, save_plot_dir, rel_dist_thres):

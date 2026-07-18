@@ -35,6 +35,7 @@ from Benchmarks.RAILBENCH_Rail.metrics.ChamferAP.chamfer_distance import (
     sample_polyline,
     chamfer_distance_polylines,
 )
+from Benchmarks.RAILBENCH_Rail.metrics.ap_utils import calculate_ap_every_point
 
 
 class ChamferAP:
@@ -187,7 +188,7 @@ class ChamferAP:
             recall = acc_tp / max(n_gt, 1)
             precision = acc_tp / np.maximum(acc_tp + acc_fp, 1)
 
-            ap, mpre, mrec, _ = self._calculate_ap_every_point(recall, precision)
+            ap, mpre, mrec, _ = calculate_ap_every_point(recall, precision)
 
             mean_chamfer = float(np.mean(all_chamfer)) if len(all_chamfer) > 0 else -1.0
 
@@ -387,29 +388,3 @@ class ChamferAP:
 
         return output
     
-    # ------------------------------------------------------------------
-    # AP computation (same as LineAP / VOC-style all-point interpolation)
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _calculate_ap_every_point(
-        rec: np.ndarray, prec: np.ndarray
-    ) -> Tuple[float, list, list, list]:
-        """
-        All-point interpolated AP, identical to the implementation used in
-        LineAP (originally from
-        https://github.com/rafaelpadilla/review_object_detection_metrics).
-        """
-        mrec: list = [0.0] + list(rec) + [1.0]
-        mpre: list = [0.0] + list(prec) + [0.0]
-
-        # Make precision monotonically decreasing
-        for i in range(len(mpre) - 1, 0, -1):
-            mpre[i - 1] = max(mpre[i - 1], mpre[i])
-
-        # Find points where recall changes
-        ii = [i + 1 for i in range(len(mrec) - 1) if mrec[i + 1] != mrec[i]]
-
-        ap = sum((mrec[i] - mrec[i - 1]) * mpre[i] for i in ii)
-
-        return float(ap), mpre[: len(mpre) - 1], mrec[: len(mpre) - 1], ii
