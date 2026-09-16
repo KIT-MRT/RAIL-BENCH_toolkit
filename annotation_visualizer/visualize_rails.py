@@ -17,6 +17,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Visualize RailBench annotations interactively.")
     parser.add_argument("--annotations", "-a", required=True, help="Path to the JSON annotations file.")
     parser.add_argument("--image_dir", "-i", required=True, help="Path to the folder containing images.")
+    parser.add_argument("--color_mode", "-c", choices=['instance', 'single', 'track'], default='track',
+                        help="Coloring mode for rails: 'instance' (different color per rail), 'single' (same color for all), or 'track' (color by track id).")
     return parser.parse_args()
 
 
@@ -73,8 +75,8 @@ def main():
 
         try:
             image = image_preparation(image_path)
-            rails, ignore_areas = rb_anns_preparation(anns, image_id=image_id)
-            img_viz = visualize_tracks(image, rails, track_ids=None, ignore_areas=ignore_areas, color_mode='instance')
+            rails, ignore_areas, track_ids = rb_anns_preparation(anns, image_id=image_id)
+            img_viz = visualize_tracks(image, rails, track_ids=track_ids, ignore_areas=ignore_areas, color_mode=args.color_mode)
             img_bgr = cv2.cvtColor(np.array(img_viz), cv2.COLOR_RGB2BGR)
         except Exception as e:
             print(f"\nError processing {file_name}: {e}")

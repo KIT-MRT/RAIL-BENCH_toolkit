@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib import pyplot as plt
 
 from shapely.geometry import LineString
 
@@ -289,41 +288,3 @@ def polyline_to_oriented_segments(polyline, sample_distance):
 
     return segments, orientation
 
-
-#-------------------------------------------------------------------------------
-def vis_polyline_sampling(polyline, points):
-    """
-    Create visualization of the polyline and the sampled points.
-    """
-    # rightRail = is_rightRail(polyline)
-    
-    plt.plot(polyline[:, 0], polyline[:, 1], 'o-')
-    for i, p in enumerate(points):
-        plt.plot(p[0], p[1], 'ro')
-        plt.text(p[0], p[1], f"{p[2]:.2f}°")
-        # if i == 0:
-        #     if rightRail:
-        #         plt.annotate("Start", (p[0], p[1]))
-        #     else:
-        #         plt.annotate("Start", (p[0], p[1]))
-        
-        
-    plt.xlabel('u')
-    plt.ylabel('v')
-    plt.gca().invert_yaxis()
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.show()
-
-def viz_line_segments(line_segments):
-    """
-    Visualize sampled line segments
-    """
-    for line in line_segments:
-        l = np.array(line)
-        plt.plot(l[:, 0], l[:, 1], 'o-')
-        
-    plt.xlabel('u')
-    plt.ylabel('v')
-    plt.gca().invert_yaxis()
-    plt.gca().set_aspect('equal', adjustable='box')
-    plt.show()

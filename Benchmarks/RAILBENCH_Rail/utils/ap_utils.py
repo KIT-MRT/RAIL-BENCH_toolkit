@@ -1,7 +1,3 @@
-"""Shared all-point interpolated AP computation, used by both LineAP and
-ChamferAP. Originally from
-https://github.com/rafaelpadilla/review_object_detection_metrics.
-"""
 from typing import List, Tuple
 
 import numpy as np

@@ -11,7 +11,12 @@ It includes evaluation scripts for **four** of the **five** RAIL-BENCH challenge
 
 The tools for the **RAIL-BENCH Odometry** challenge can be found here: [RAIL-BENCH Odometry](https://github.com/KIT-MRT/RAIL-BENCH_odometry).
 
+## Updates
+
+- **16.09.2026** — The LineAP and ChamferAP metrics received an update to speed up computation time, plus a new feature to define the distance threshold relative to the track width. 
+
 -----
+
 This readme is structured as follows:
 
 1. [Getting Started](#1-getting-started): how to set up your python environment
@@ -68,7 +73,6 @@ python annotation_visualizer/visualize_rails.py
 
 Visualization tools for the other benchmarks will follow soon ...
 
-
 # 3 Format checks
 
 We provide format checks to ensure that your prediction files are correctly formated. Depending on the challenge, the functions check the general formatting and/or provide specific checks for the respective RAIL-BENCH challenges. 
@@ -76,7 +80,8 @@ We provide format checks to ensure that your prediction files are correctly form
 > **💡 Tip:** If you want to participate in a challenge, we advise you to check if your predictions are correctly formatted using the respective `check_formatting.py` function before submission. For all challenges you can find a folder `format` with a guide on the correct formatting. 
 
 
-## 3.1 RAIL-BENCH Rail and RAIL-BENCH Object
+<details>
+<summary><strong>3.1 RAIL-BENCH Rail and RAIL-BENCH Object</strong></summary>
 
 ### Preparation
 
@@ -99,7 +104,10 @@ Use the respective `check_formatting.py` function to check whether your JSON fil
 python check_formatting.py [-h] [--pred_file PRED_FILE] [--is_railbench_test]
 ```
 
-## 3.2 RAIL-BENCH Vegetation
+</details>
+
+<details>
+<summary><strong>3.2 RAIL-BENCH Vegetation</strong></summary>
 
 ### Preparation
 
@@ -118,7 +126,10 @@ With `pred_path` you specify the path to the folder with your predicted masks.
 python check_formatting.py [-h] [--pred_path PRED_PATH]
 ```
 
-## 3.3 RAIL-BENCH Tracking
+</details>
+
+<details>
+<summary><strong>3.3 RAIL-BENCH Tracking</strong></summary>
 
 ### Preparation
 
@@ -140,9 +151,14 @@ Use the function `check_formatting.py` to check whether you submission file is c
 python check_formatting.py [-h] [--pred_path PRED_PATH] [--is_railbench_test]
 ```
 
+</details>
+
+<br>
+
 # 4 Running an Evaluation
 
-## 4.1 RAIL-BENCH Rail
+<details>
+<summary><strong>4.1 RAIL-BENCH Rail</strong></summary>
 
 **1. Prepare evaluation**
 
@@ -170,12 +186,17 @@ Benchmarks/RAILBENCH_Rail/data/
 
 ```bash
 cd Benchmarks/RAILBENCH_Rail
-python run_rail_eval.py [-h] [--metric {ChamferAP,LineAP}] [--project PROJECT] [--overwrite]
+python run_rail_eval.py [-h] [--metric {ChamferAP,LineAP,RailBench}] [--project PROJECT] [--overwrite]
 ```
 
 The results are placed in a new folder `results` in your project folder. 
 
-## 4.2 RAIL-BENCH Object
+If you select `RailBench` as the metric, the script computes both ChamferAP and LineAP and then adds the average of both mAP scores to the output. 
+
+</details>
+
+<details>
+<summary><strong>4.2 RAIL-BENCH Object</strong></summary>
 
 **1. Prepare evaluation**
 
@@ -190,7 +211,10 @@ python run_object_eval.py [-h] [--project PROJECT] [--overwrite]
 
 The results are placed in a new folder `results` in your project folder. 
 
-## 4.3 RAIL-BENCH Vegetation
+</details>
+
+<details>
+<summary><strong>4.3 RAIL-BENCH Vegetation</strong></summary>
 
 For evaluation you need to specify the path to your ground truth masks (`gt_path`) and predicted masks (`pred_path`) as well as which `split` you are evaluating on. Note, that the evaluation script assumes to find a folder named as the specific `split` (e.g. `val`) under `gt_path` and `pred_path`. 
 
@@ -201,7 +225,10 @@ cd Benchmarks/RAILBENCH_Vegetation
 python run_veg_eval.py [-h] [--split SPLIT] [--pred_path PRED_PATH] [--gt_path GT_PATH] [--expected_num_gt_files EXPECTED_NUM_GT_FILES] [--project_name PROJECT_NAME] [--overwrite]
 ```
 
-## 4.4 RAIL-BENCH Tracking
+</details>
+
+<details>
+<summary><strong>4.4 RAIL-BENCH Tracking</strong></summary>
 
 **1. Prepare evaluation**
 
@@ -242,6 +269,9 @@ python run_tracking_eval.py [-h] [--project my_project]
 
 You can find the results within each trackers' subfolder as well as combined in `Benchmarks/RAILBENCH_Tracking/data/my_project/`. 
 
+</details>
+
+<br>
 
 # 5 Citation
 
@@ -261,7 +291,7 @@ If you use this software, please cite our work:
 
 See [`CITATION.cff`](CITATION.cff) for a machine-readable citation file.
 
-Additionally, the **RAIL-BENCH Object** evaluation (and the AP computation in **RAIL-BENCH Rail**) builds on code from Rafael Padilla's [`review_object_detection_metrics`](https://github.com/rafaelpadilla/review_object_detection_metrics). If you publish results produced with these parts of the toolkit, please also cite:
+Additionally, the **RAIL-BENCH Object** evaluation builds on code from Rafael Padilla's [`review_object_detection_metrics`](https://github.com/rafaelpadilla/review_object_detection_metrics). If you publish results produced with these parts of the toolkit, please also cite:
 
 ```bibtex
 @article{padilla2021comparative,

@@ -4,7 +4,7 @@ All content has been reviewed and adapted by the author, but AI-generated
 contributions may be present.
 ------------------------------------------------------------------------------
 
-ChamferAP – Average Precision metric based on Chamfer Distance.
+ChamferAP stands for Average Precision metric based on Chamfer Distance.
 
 Follows the evaluation protocol used by MapTR / MapTRv2 for vectorised map
 predictions:
@@ -18,25 +18,23 @@ predictions:
     compute precision / recall, and derive AP (area under the PR curve).
 5.  Report AP at each requested Chamfer-distance threshold and report
     the mean across thresholds (mAP).
-
-Interface mirrors ``LineAP`` in ``metrics_v4.py`` so that it plugs into the
-existing ``eval_tracks.py`` pipeline with no friction.
 """
 
 from __future__ import annotations
 
 import copy
-import os
 import numpy as np
-from scipy.optimize import linear_sum_assignment
 from typing import List, Dict, Optional, Tuple
 
-from Benchmarks.RAILBENCH_Rail.metrics.ChamferAP.chamfer_distance import (
-    sample_polyline,
-    chamfer_distance_polylines,
-)
-from Benchmarks.RAILBENCH_Rail.metrics.ap_utils import calculate_ap_every_point
+from Benchmarks.RAILBENCH_Rail.metrics.ChamferAP.chamfer_distance import chamfer_distance_polylines
+from Benchmarks.RAILBENCH_Rail.utils.ap_utils import calculate_ap_every_point
+from Benchmarks.RAILBENCH_Rail.utils.track_width import track_width_line_parameters
+from Benchmarks.RAILBENCH_Rail.utils.polyline_tools import polyline_orientation
+from Benchmarks.RAILBENCH_Rail.utils.ignore_areas import remove_preds_in_ignore
 
+# default line parameters for track width calculation if no valid line can be fitted
+M_DEFAULT = 0.52
+B_DEFAULT = -520
 
 class ChamferAP:
     """
@@ -54,41 +52,74 @@ class ChamferAP:
 
     num_sample_points : int
         Number of points to uniformly resample each polyline to before
-        computing Chamfer distance (default 100).
+        computing Chamfer distance (default 50).
+
+    dist_thr_mode : str
+        Mode for determining the distance threshold. Default: 'track_width'.
+         Options: 
+            1. 'absolute': distance threshold is interpreted as an absolute distance in pixels.
+            2. 'relative': distance threshold is interpreted as a relative distance in percentage with respect to the image width.
+            3. 'track_width': distance threshold is interpreted as a relative distance in percentage with respect to the track width.
 
     extended_summary : bool
         If True, per-image matching details are stored for later analysis /
         visualisation.
+
+    max_detections : int, optional
+        If set, only the top ``max_detections`` highest-confidence predicted rails per image are considered
+        for matching (analogous to COCO's ``maxDets``). This penalizes over-generation of low-confidence
+        predictions: precision is computed only from the kept predictions, while recall is still measured
+        against the full, uncapped set of GT rails. If None, no cap is applied. Default 100.
+
+    verbose: bool
+        If True, print progress messages during evaluation. Default: False.
     """
 
     def __init__(
         self,
         predictions: dict,
         gt: dict,
-        num_sample_points: int = 20,
+        num_sample_points: int = 50,
+        dist_thr_mode='track_width',
         extended_summary: bool = False,
+        max_detections: Optional[int] = 100,
+        verbose: bool = False
     ):
-        self.predictions = self._process_predictions(predictions)
-        self.gt = self._process_gt(gt)
+        self.dist_thr_mode = dist_thr_mode
+
+        predictions_filtered = remove_preds_in_ignore(predictions, gt)
+        self.predictions = self._process_predictions(predictions_filtered)
+        self.gt = self._process_gt(gt, self.dist_thr_mode)
         self._checks()
 
         self.num_sample_points = num_sample_points
         self.extended_summary = extended_summary
+
+        assert max_detections is None or max_detections > 0, "max_detections must be None or a positive integer."
+        self.max_detections = max_detections
+
         self.results: Dict[str, dict] = {}
+
+        self.verbose = verbose
+
 
     # ------------------------------------------------------------------
     # Data preparation  (same helpers as LineAP)
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _process_gt(gt: dict) -> dict:
+    def _process_gt(gt: dict, dist_thr_mode: str) -> dict:
         """Convert RailBench/COCO GT format to ``{img_name: {'rails': …, 'ignore_areas': …}}``."""
         img_id_name = {img['id']: img['file_name'] for img in gt['images']}
         img_id_width = {img['id']: img['width'] for img in gt['images']}
-        #file_names = list(img_id_name_mapping.values())
+
         gt_rails = {}
         for img_id, img_name in img_id_name.items():
             gt_rails[img_name] = {'rails': [], 'ignore_areas': [], 'image_width': img_id_width[img_id]}
+            if dist_thr_mode == 'track_width':
+                gt_rails[img_name]['track_ids'] = []
+                gt_rails[img_name]['rightRail'] = []
+                gt_rails[img_name]['track_width_line_parameters'] = {'m': None, 'b': None}
 
         cat_id_name = {cat["id"]: cat["name"] for cat in gt["categories"]}
 
@@ -96,9 +127,25 @@ class ChamferAP:
             img_name = img_id_name[ann["image_id"]]
             cat_name = cat_id_name[ann["category_id"]]
             if cat_name == "rail":
-                gt_rails[img_name]["rails"].append(ann["polyline"])
+                gt_rails[img_name]["rails"].append(polyline_orientation(ann["polyline"]))
+                if dist_thr_mode == 'track_width':
+                        gt_rails[img_name]['track_ids'].append(ann['track_id'])
+                        gt_rails[img_name]['rightRail'].append(ann['rightRail'])
             elif cat_name == "ignore_area":
                 gt_rails[img_name]["ignore_areas"].append(ann["polygon"])
+
+        # Compute line parameters for track width calculation if dist_thr_mode is 'track_width'
+        if dist_thr_mode == 'track_width':
+            for img_name, img_data in gt_rails.items():
+                m, b = track_width_line_parameters(gt_rails = img_data['rails'],
+                                                   track_ids = img_data['track_ids'],
+                                                   right_rail = img_data['rightRail'])
+                if m is None or b is None:
+                    m = M_DEFAULT
+                    b = B_DEFAULT
+                gt_rails[img_name]['track_width_line_parameters']['m'] = m
+                gt_rails[img_name]['track_width_line_parameters']['b'] = b
+        
         return gt_rails
 
     @staticmethod
@@ -112,8 +159,8 @@ class ChamferAP:
             for i, rail in enumerate(pred["rails"]):
                 if len(rail) < 2:
                     continue
-                if rail[0][1] < rail[-1][1]:  # start_v < end_v → flip
-                    pred["rails"][i] = rail[::-1]
+                rail = polyline_orientation(rail)
+                pred["rails"][i] = rail 
         return predictions
 
     def _checks(self):
@@ -137,27 +184,37 @@ class ChamferAP:
                     f"{len(pred['rails'])} vs {len(pred['score'])}."
                 )
 
+    def _cap_predictions(self, pred_rails: list, pred_scores: list) -> Tuple[list, list]:
+        """
+        Keep only the top-`max_detections` highest-confidence predicted rails
+        (analogous to COCO's maxDets), to penalize over-generation. No-op if
+        max_detections is None or there are already fewer predictions than the cap.
+        """
+        if self.max_detections is None or len(pred_rails) <= self.max_detections:
+            return pred_rails, pred_scores
+        sorted_idx = np.argsort(pred_scores)[::-1][:self.max_detections]
+        return [pred_rails[i] for i in sorted_idx], [pred_scores[i] for i in sorted_idx]
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
     def evaluate(
         self,
-        chamfer_thresholds: Optional[List[float]] = None,
-        use_abs_chamfer: bool = True,
+        dist_thresholds: Optional[List[float]] = None,
+        min_dist_threshold: Optional[float] = None,
     ) -> dict:
         """
         Run evaluation at each Chamfer-distance threshold.
 
         Parameters
         ----------
-        chamfer_thresholds : list of float
-            Chamfer-distance thresholds (in pixels). Depending on *use_abs_chamfer*, 
-            the thresholds are interpreted as absolute pixel values or as relative fractions (in percentage) of image width. 
-           
-        use_abs_chamfer : bool
-            If True, use absolute thresholds from *chamfer_thresholds*.
-            If False, use relative thresholds from *rel_chamfer_thresholds*.
+        dist_thresholds : list of float
+            Distance thresholds. 
+            Depending on dist_thr_mode, these are interpreted as absolute pixel values (if 'absolute'), relative fractions of image width (if 'relative'), or relative fractions of track width (if 'track_width').
+
+        min_dist_threshold : float, optional
+            Minimum distance threshold to consider for evaluation with respect to track width. If provided, any threshold below this value will be set to this minimum value. 
 
         Returns
         -------
@@ -167,19 +224,35 @@ class ChamferAP:
             ``{'AP': …, 'mean_chamfer': …}``.
         """
         self.results = {}
+        self._cost_matrix_cache: Dict[str, np.ndarray] = {}
 
-        abs_flag = use_abs_chamfer
-        thr_list = chamfer_thresholds
+        thr_list = dist_thresholds
+
+        if self.dist_thr_mode == 'track_width':
+            assert min_dist_threshold is not None, "min_dist_threshold must be provided when dist_thr_mode is 'track_width'."
 
         for thr in thr_list:
-            print(f"Evaluating for Chamfer distance threshold = {thr} {'px' if abs_flag else '% (relative wrt image width)'} ...")
-            key = f"chamfer_thr_{thr}" if abs_flag else f"rel_chamfer_thr_{thr}"
+            if self.dist_thr_mode == 'absolute':
+                if self.verbose:
+                    print(f"Evaluating for Chamfer distance threshold = {thr} px ...")
+                key = f"chamfer_thr_{thr}"
+            elif self.dist_thr_mode == 'relative':
+                if self.verbose:
+                    print(f"Evaluating for Chamfer distance threshold = {thr}% (relative wrt image width) ...")
+                key = f"rel_chamfer_thr_{thr}"
+            elif self.dist_thr_mode == 'track_width':
+                if self.verbose:
+                    print(f"Evaluating for Chamfer distance threshold = {thr}% (relative wrt track width) ...")
+                key = f"rel_chamfer_thr_{thr}"
+            else:
+                raise ValueError(f"Invalid dist_thr_mode: {self.dist_thr_mode}")
+            
             self.results[key] = {}
             if self.extended_summary:
                 self.results[key]["images"] = {}
 
             tp, fp, n_gt, all_chamfer, all_scores = self._compute_tp_fp(
-                thr, abs_dist_flag=abs_flag, result_key=key
+                thr, result_key=key, min_dist_threshold=min_dist_threshold
             )
 
             # Precision / Recall
@@ -197,12 +270,24 @@ class ChamferAP:
 
         # Compute mAP across thresholds
         aps = [
-            self.results[f"chamfer_thr_{t}" if abs_flag else f"rel_chamfer_thr_{t}"]["AP"]
+            self.results[f"chamfer_thr_{t}" if self.dist_thr_mode == 'absolute' else f"rel_chamfer_thr_{t}"]["AP"]
             for t in thr_list
         ]
         self.results["mAP"] = float(np.mean(aps))
 
         return self.results
+
+    def _format_threshold_label(self, key: str) -> str:
+        """Human-readable label for a per-threshold results key, based on dist_thr_mode."""
+        d_t = float(key.split("_")[-1])
+        if self.dist_thr_mode == 'absolute':
+            return f"Distance threshold = {d_t:g} px"
+        elif self.dist_thr_mode == 'relative':
+            return f"Distance threshold = {d_t:g}% (relative to image width)"
+        elif self.dist_thr_mode == 'track_width':
+            return f"Distance threshold = {d_t:g}% (relative to track width)"
+        else:
+            raise ValueError(f"Invalid dist_thr_mode: {self.dist_thr_mode}")
 
     def print_summary(self):
         """Print a compact summary table."""
@@ -212,9 +297,9 @@ class ChamferAP:
         for key, res in self.results.items():
             if key == "mAP":
                 continue
-            print(f"  {key}:")
-            print(f"    AP              = {res['AP']:.4f}")
-            print(f"    Mean Chamfer    = {res['mean_chamfer']:.4f}")
+            print(f"  {self._format_threshold_label(key)}:")
+            print(f"    AP                    = {res['AP']:.4f}")
+            print(f"    Mean Chamfer dist.    = {res['mean_chamfer']:.4f}")
         if "mAP" in self.results:
             print("-" * 50)
             print(f"  mAP (across thresholds) = {self.results['mAP']:.4f}")
@@ -227,8 +312,12 @@ class ChamferAP:
     # Core evaluation logic
     # ------------------------------------------------------------------
 
+        
     def _compute_tp_fp(
-        self, threshold: float, abs_dist_flag: bool = True, result_key: str | None = None,
+        self, 
+        threshold: float, 
+        result_key: str | None = None,
+        min_dist_threshold: Optional[float] = None
     ) -> Tuple[np.ndarray, np.ndarray, int, list, list]:
         """
         Accumulate TP / FP across all images for a single threshold.
@@ -236,21 +325,19 @@ class ChamferAP:
         Parameters
         ----------
         threshold : float
-            Distance threshold.  Interpreted as absolute pixels when
-            *abs_dist_flag* is True, or as a fraction of image width when
-            False.
-        abs_dist_flag : bool
-            Whether *threshold* is absolute (True) or relative (False).
+            Distance threshold. 
         result_key : str or None
             Key into ``self.results`` used to store per-image extended
             summaries.
+        min_dist_threshold : float, optional
+            Minimum distance threshold to consider for evaluation with respect to track width. If provided, any threshold below this value will be set to this minimum value.
 
         Returns
         -------
-        tp, fp : np.ndarray   – binary arrays (globally sorted by confidence)
-        n_gt   : int           – total number of GT polylines
-        all_chamfer : list     – Chamfer distances of matched (TP) pairs
-        all_scores  : list     – corresponding confidence scores
+        - tp, fp : np.ndarray - binary arrays (globally sorted by confidence)
+        - n_gt   : int - total number of GT polylines
+        - all_chamfer : list - Chamfer distances of matched (TP) pairs
+        - all_scores  : list - corresponding confidence scores
         """
         # Collect per-image results first
         per_image: List[dict] = []
@@ -260,16 +347,25 @@ class ChamferAP:
             gt_rails = self.gt[img_name]["rails"].copy()
             pred_rails = self.predictions[img_name]["rails"].copy()
             pred_scores = list(self.predictions[img_name]["score"]).copy()
+            pred_rails, pred_scores = self._cap_predictions(pred_rails, pred_scores)
+            track_width_line_params = self.gt[img_name].get('track_width_line_parameters', None)
             n_gt_total += len(gt_rails)
 
             # Resolve per-image threshold
-            if abs_dist_flag:
-                img_threshold = threshold
+            img_threshold = self._resolve_dist_thres(img_name, threshold)
+            if self.dist_thr_mode == 'track_width':
+                img_threshold_list = self._compute_rail_dist_threshold(gt_rails, track_width_line_params, img_threshold, min_dist_threshold=min_dist_threshold)
             else:
-                img_threshold = threshold/100 * self.gt[img_name]["image_width"]
+                img_threshold_list = None
 
-            img_result = self._compute_tp_fp_single_image(
-                pred_rails, pred_scores, gt_rails, img_threshold
+            if img_name not in self._cost_matrix_cache:
+                self._cost_matrix_cache[img_name] = self._compute_cost_matrix_single_image(
+                    pred_rails, gt_rails
+                )
+            cost = self._cost_matrix_cache[img_name]
+
+            img_result = self._match_single_image(
+                cost, pred_rails, pred_scores, threshold=img_threshold, threshold_list=img_threshold_list
             )
             per_image.append(img_result)
 
@@ -298,33 +394,120 @@ class ChamferAP:
 
         return tp, fp, n_gt_total, all_chamfer, sorted_scores
 
-    def _compute_tp_fp_single_image(
+    def _resolve_dist_thres(self, img_ident, dist_thres):
+        if self.dist_thr_mode == 'absolute':
+            return dist_thres
+        elif self.dist_thr_mode == 'relative':
+            return int(dist_thres/100.0 * self.gt[img_ident]['image_width'])
+        else:  # 'track_width'
+            # Transform percentage into scale factor
+            return dist_thres/100.0
+
+    def _compute_rail_dist_threshold(self, gt_rails: list, track_width_line_params: dict, scale: float, min_dist_threshold: float) -> float:
+        """
+        Assign a distance threshold to each individual rail based on its track width, using the provided line parameters.
+
+        Parameters:
+        gt_rails : list
+            List of ground truth rails (polylines). 
+        track_width_line_params : dict
+            Dictionary containing the line parameters 'm' and 'b' for the track width calculation.
+        scale : float
+            The scale factor to be applied to the track width.
+        min_dist_threshold : float
+            Minimum distance threshold to consider for evaluation with respect to track width. If provided, any threshold below this value will be set to this minimum value.
+
+        Returns:
+        img_threshold_list : list
+            List of distance thresholds for each rail, computed as scale * track_width, with a minimum of min_dist_threshold if provided.
+        """
+
+        m = track_width_line_params.get('m', M_DEFAULT)
+        b = track_width_line_params.get('b', B_DEFAULT)
+
+        # Compute the average track width for the given rails
+        track_widths = []
+        for rail in gt_rails:
+            if len(rail) < 2:
+                raise ValueError("Each rail must have at least two points to compute track width.")
+            start_v = rail[0][1]
+            end_v = rail[-1][1]
+            avg_v = (start_v + end_v) / 2
+            track_width = m * avg_v + b
+            track_widths.append(track_width)
+
+        img_threshold_list = []
+        for w in track_widths:
+            img_threshold = scale * w
+            if min_dist_threshold is not None:
+                img_threshold = max(img_threshold, min_dist_threshold)
+            img_threshold_list.append(img_threshold)
+
+        return img_threshold_list
+
+
+
+    def _compute_cost_matrix_single_image(
         self,
         pred_rails: list,
-        pred_scores: list,
         gt_rails: list,
+    ) -> np.ndarray:
+        """
+        Compute the full pairwise Chamfer distance matrix between predicted
+        and GT polylines for one image.
+
+        This is independent of any distance threshold, so callers evaluating
+        multiple thresholds should compute it once per image and reuse it
+        (see ``evaluate``'s ``_cost_matrix_cache``).
+
+        Returns
+        -------
+        cost_matrix : np.ndarray of shape (n_pred, n_gt)
+        """
+        n_pred = len(pred_rails)
+        n_gt = len(gt_rails)
+
+        cost = np.empty((n_pred, n_gt))
+        for i, pl in enumerate(pred_rails):
+            for j, gl in enumerate(gt_rails):
+                cost[i, j] = chamfer_distance_polylines(
+                    pl, gl, num_points=self.num_sample_points
+                )
+        return cost
+
+    def _match_single_image(
+        self,
+        cost: np.ndarray,
+        pred_rails: list,
+        pred_scores: list,
         threshold: float,
+        threshold_list: list = None
     ) -> dict:
         """
-        For one image, perform confidence-sorted greedy matching using
-        Chamfer distance and return per-prediction TP/FP flags.
+        For one image, perform confidence-sorted greedy matching given an
+        already-computed Chamfer cost matrix, and return per-prediction
+        TP/FP flags.
 
         This follows the MapTR evaluation protocol:
         - Sort predictions by confidence (descending).
-        - Compute pairwise Chamfer distance matrix.
         - For each prediction (in confidence order), match to the closest
           unmatched GT if distance < threshold.
 
         Returns
         -------
         dict with keys:
-            tp_flags        – list[int] of 0/1 per prediction (confidence-sorted)
-            scores          – list[float] of confidence scores (same order)
-            matched_chamfer – list[float] of Chamfer distances for TP matches
-            cost_matrix     – np.ndarray (n_pred, n_gt) full Chamfer distance matrix
+        - tp_flags        - list[int] of 0/1 per prediction (confidence-sorted)
+        - scores          - list[float] of confidence scores (same order)
+        - matched_chamfer - list[float] of Chamfer distances for TP matches
+        - cost_matrix     - np.ndarray (n_pred, n_gt) full Chamfer distance matrix
         """
-        n_pred = len(pred_rails)
-        n_gt = len(gt_rails)
+        if self.dist_thr_mode == 'track_width':
+            assert threshold_list is not None, "threshold_list must be provided when dist_thr_mode is 'track_width'."
+            assert len(threshold_list) == cost.shape[1], "threshold_list length must match number of GT rails."
+        else:
+            assert isinstance(threshold, (int, float)), "threshold must be a single float for dist_thr_mode 'absolute' or 'relative'."
+
+        n_pred, n_gt = cost.shape
 
         # Edge cases
         if n_pred == 0:
@@ -332,28 +515,22 @@ class ChamferAP:
                 "tp_flags": [],
                 "scores": [],
                 "matched_chamfer": [],
-                "cost_matrix": np.empty((0, n_gt)),
+                "cost_matrix": cost,
             }
+
+        sorted_idx = np.argsort(pred_scores)[::-1]
+
         if n_gt == 0:
             # All predictions are FP
-            sorted_idx = np.argsort(pred_scores)[::-1]
-            return {
+            output = {
                 "tp_flags": [0] * n_pred,
                 "scores": [pred_scores[i] for i in sorted_idx],
                 "matched_chamfer": [],
-                "cost_matrix": np.empty((n_pred, 0)),
+                "cost_matrix": cost,
             }
-
-        # 1) Pairwise Chamfer distance matrix
-        cost = np.zeros((n_pred, n_gt))
-        for i, pl in enumerate(pred_rails):
-            for j, gl in enumerate(gt_rails):
-                cost[i, j] = chamfer_distance_polylines(
-                    pl, gl, num_points=self.num_sample_points
-                )
-
-        # 2) Sort predictions by confidence (descending)
-        sorted_idx = np.argsort(pred_scores)[::-1]
+            if self.extended_summary:
+                output["pred_rails_sorted"] = [pred_rails[i] for i in sorted_idx]
+            return output
 
         tp_flags: List[int] = []
         scores: List[float] = []
@@ -367,8 +544,9 @@ class ChamferAP:
             dists[gt_matched] = np.inf
             best_gt = int(np.argmin(dists))
             best_dist = dists[best_gt]
+            dt = threshold if self.dist_thr_mode != 'track_width' else threshold_list[best_gt]
 
-            if best_dist < threshold:
+            if best_dist < dt:
                 tp_flags.append(1)
                 gt_matched[best_gt] = True
                 matched_chamfer.append(float(best_dist))
@@ -387,4 +565,37 @@ class ChamferAP:
             output["pred_rails_sorted"] = [pred_rails[i] for i in sorted_idx]
 
         return output
+
+
+    def _compute_tp_fp_single_image(
+        self,
+        img_ident,
+        threshold: float,
+        min_dist_threshold: Optional[float] = None
+    ) -> dict:
+        """
+        For one image, compute the Chamfer cost matrix and perform
+        confidence-sorted greedy matching in one call.
+
+        Kept as a convenience wrapper around ``_compute_cost_matrix_single_image``
+        and ``_match_single_image`` for callers (e.g. ``chamfer_viz.py``) that
+        need a single-threshold, single-image result without going through
+        ``evaluate``'s cost-matrix cache.
+        """
+        img_name = img_ident
+
+        gt_rails = self.gt[img_name]["rails"].copy()
+        pred_rails = self.predictions[img_name]["rails"].copy()
+        pred_scores = list(self.predictions[img_name]["score"]).copy()
+        pred_rails, pred_scores = self._cap_predictions(pred_rails, pred_scores)
+        track_width_line_params = self.gt[img_name].get('track_width_line_parameters', None)
+        
+        img_threshold = self._resolve_dist_thres(img_name, threshold)
+        if self.dist_thr_mode == 'track_width':
+            img_threshold_list = self._compute_rail_dist_threshold(gt_rails, track_width_line_params, img_threshold, min_dist_threshold=min_dist_threshold)
+        else:
+            img_threshold_list = None
+
+        cost = self._compute_cost_matrix_single_image(pred_rails, gt_rails)
+        return self._match_single_image(cost, pred_rails, pred_scores, threshold, threshold_list=img_threshold_list)
     

@@ -16,6 +16,8 @@ def rb_anns_preparation(annotations, image_id=1):
 
     rails = []
     ignore_areas = []
+    track_ids = []
+    missing_track_id = False
 
     assert annotations['categories'][0]['id'] == 1 and annotations['categories'][0]['name'] == 'rail', "Expected category id 1 to be 'rail'"
     assert annotations['categories'][1]['id'] == 2 and annotations['categories'][1]['name'] == 'ignore_area', "Expected category id 2 to be 'ignore area'"
@@ -24,10 +26,16 @@ def rb_anns_preparation(annotations, image_id=1):
         if ann['image_id'] == image_id:
             if ann['category_id'] == 1: # rail
                 rails.append(ann['polyline'])
+                if not missing_track_id:
+                    if 'track_id' in ann:
+                        track_ids.append(ann['track_id'])
+                    else:
+                        missing_track_id = True
+                        track_ids = None
             elif ann['category_id'] == 2: # ignore area
                 ignore_areas.append(ann['polygon'])
 
-    return rails, ignore_areas
+    return rails, ignore_areas, track_ids
 
 #-------------------------------------------------------------------
 
