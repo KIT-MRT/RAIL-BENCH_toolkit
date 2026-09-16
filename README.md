@@ -11,17 +11,15 @@ It includes evaluation scripts for **four** of the **five** RAIL-BENCH challenge
 
 The tools for the **RAIL-BENCH Odometry** challenge can be found here: [RAIL-BENCH Odometry](https://github.com/KIT-MRT/RAIL-BENCH_odometry).
 
+## Updates
+
+- **16.09.2026** — The LineAP and ChamferAP metrics received an update to speed up computation time, plus a new feature to define the distance threshold relative to track width. 
+
 -----
-This readme is structured as follows:
-
-1. [Getting Started](#1-getting-started): how to set up your python environment
-2. [Visualize Annotations](#2-visualize-annotations): guide for visualizing annotations 
-3. [Format Checks](#3-format-checks): guide for checking the format of your predictions before submission
-4. [Running an Evaluation](#4-running-an-evaluation): run evaluation with the official RAIL-BENCH evaluation metrics
-5. [Citations](#5-citation)
 
 
-# 1 Getting Started
+<details open id="1-getting-started">
+<summary><strong style="font-size: 2em;">1 Getting Started</strong></summary>
 
 ### Requirements
 
@@ -54,7 +52,10 @@ pip install -e .
 This installs the package in editable mode along with all required dependencies:
 [`shapely`](https://shapely.readthedocs.io/), [`numpy`](https://numpy.org/), [`opencv-python`](https://pypi.org/project/opencv-python/), [`scikit-learn`](https://scikit-learn.org/), [`scipy`](https://scipy.org/), [`networkx`](https://networkx.org/), [`matplotlib`](https://matplotlib.org/), [`tqdm`](https://tqdm.github.io/).
 
-# 2 Visualize Annotations
+</details>
+
+<details id="2-visualize-annotations">
+<summary><strong style="font-size: 2em;">2 Visualize Annotations</strong></summary>
 
 To visualize the annotations use the functions in the folder annotation_visualizer. 
 
@@ -69,7 +70,10 @@ python annotation_visualizer/visualize_rails.py
 Visualization tools for the other benchmarks will follow soon ...
 
 
-# 3 Format checks
+</details>
+
+<details id="3-format-checks">
+<summary><strong style="font-size: 2em;">3 Format checks</strong></summary>
 
 We provide format checks to ensure that your prediction files are correctly formated. Depending on the challenge, the functions check the general formatting and/or provide specific checks for the respective RAIL-BENCH challenges. 
 
@@ -140,7 +144,10 @@ Use the function `check_formatting.py` to check whether you submission file is c
 python check_formatting.py [-h] [--pred_path PRED_PATH] [--is_railbench_test]
 ```
 
-# 4 Running an Evaluation
+</details>
+
+<details id="4-running-an-evaluation">
+<summary><strong style="font-size: 2em;">4 Running an Evaluation</strong></summary>
 
 ## 4.1 RAIL-BENCH Rail
 
@@ -170,10 +177,12 @@ Benchmarks/RAILBENCH_Rail/data/
 
 ```bash
 cd Benchmarks/RAILBENCH_Rail
-python run_rail_eval.py [-h] [--metric {ChamferAP,LineAP}] [--project PROJECT] [--overwrite]
+python run_rail_eval.py [-h] [--metric {ChamferAP,LineAP,RailBench}] [--project PROJECT] [--overwrite]
 ```
 
 The results are placed in a new folder `results` in your project folder. 
+
+If you select `RailBench` as the metric, the script computes both ChamferAP and LineAP and then adds the average of both mAP scores to the output. 
 
 ## 4.2 RAIL-BENCH Object
 
@@ -243,7 +252,10 @@ python run_tracking_eval.py [-h] [--project my_project]
 You can find the results within each trackers' subfolder as well as combined in `Benchmarks/RAILBENCH_Tracking/data/my_project/`. 
 
 
-# 5 Citation
+</details>
+
+<details id="5-citation">
+<summary><strong style="font-size: 2em;">5 Citation</strong></summary>
 
 If you use this software, please cite our work:
 
@@ -297,6 +309,8 @@ The **RAIL-BENCH Tracking** evaluation builds on code from Jonathon Luiten's [`T
 ```
 
 See the [`NOTICE`](NOTICE) file for full details on this obligation.
+
+</details>
 
 ## License & Acknowledgements
 

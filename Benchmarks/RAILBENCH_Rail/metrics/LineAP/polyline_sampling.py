@@ -2,9 +2,6 @@ import numpy as np
 
 from Benchmarks.RAILBENCH_Rail.metrics.LineAP.polyline_tools import polyline_to_oriented_points, polyline_to_oriented_segments
 
-from shapely import LineString, Point, Polygon, distance as shapely_distance
-from shapely.ops import unary_union
-
 
 def point_sampling(rails, sample_distance, midpoints=True):
     """
@@ -22,7 +19,7 @@ def point_sampling(rails, sample_distance, midpoints=True):
 
     midpoints : bool
         If True, the midpoints of the segments are returned. 
-
+        
     Returns
     -------
     all_points : list
@@ -50,6 +47,7 @@ def point_sampling(rails, sample_distance, midpoints=True):
             all_points = np.vstack((all_points, pts))
 
         rail_index_list.extend([i] * len(pts))
+
 
     if first_pts:
         return None, None, rail_index_list
@@ -108,14 +106,3 @@ def segment_sampling(rails, sample_distance):
     else:
         return all_segments, all_orientations, rail_index_list
 
-
-def segment_in_ignore(pred_rails, ignore_areas, sample_distance):
-    """
-    Identify which segments are in ignore areas. 
-    A segment is in the ignore area if the midpoint of the segment is in the ignore area.
-    """
-    pred_midpoints, _, _ = point_sampling(pred_rails, sample_distance, midpoints=True)
-    ignore_shapes = [Polygon(area) for area in ignore_areas]
-    combined_ignore_shape = unary_union(ignore_shapes)
-    midpoint_in_ignore = [combined_ignore_shape.contains(Point(p)) for p in pred_midpoints]
-    return midpoint_in_ignore

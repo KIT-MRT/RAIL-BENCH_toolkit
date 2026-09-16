@@ -1,6 +1,6 @@
 import numpy as np
 from shapely import geometry
-
+import copy
 
 def validate_polylines(data, data_type="predictions"):
     """
@@ -69,10 +69,12 @@ def validate_polylines(data, data_type="predictions"):
     return issues
 
 
-def process_predictions(preds, gt):
+def remove_preds_in_ignore(predictions, gt):
     """
     Remove parts of predictions that fall within the specified ignore areas.
     """
+
+    preds = copy.deepcopy(predictions)
 
     # step 1: get ignore areas for each img
     for cat in gt['categories']:
@@ -96,7 +98,13 @@ def process_predictions(preds, gt):
 
     for img, pred in preds.items():
         preds_new[img] = {'rails': [], 'score': []}
-        ignore_polgons = [geometry.Polygon(area) for area in ignore_areas[img]] # all ignore areas for the specific image
+
+        ignore_polgons = []
+        for area in ignore_areas[img]:
+            poly = geometry.Polygon(area)
+            if not poly.is_valid:
+                poly = poly.buffer(0)
+            ignore_polgons.append(poly)
 
         for i, rail in enumerate(pred['rails']):
             polyline = geometry.LineString(rail) 
