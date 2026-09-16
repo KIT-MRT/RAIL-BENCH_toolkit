@@ -13,7 +13,7 @@ The tools for the **RAIL-BENCH Odometry** challenge can be found here: [RAIL-BEN
 
 ## Updates
 
-- **16.09.2026** — The LineAP and ChamferAP metrics received an update to speed up computation time, plus a new feature to define the distance threshold relative to track width. 
+- **16.09.2026** — The LineAP and ChamferAP metrics received an update to speed up computation time, plus a new feature to define the distance threshold relative to the track width. 
 
 -----
 
