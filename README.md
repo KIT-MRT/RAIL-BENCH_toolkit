@@ -17,7 +17,6 @@ The tools for the **RAIL-BENCH Odometry** challenge can be found here: [RAIL-BEN
 
 -----
 
-
 <details open id="1-getting-started">
 <summary><strong style="font-size: 2em;">1 Getting Started</strong></summary>
 
@@ -273,7 +272,7 @@ If you use this software, please cite our work:
 
 See [`CITATION.cff`](CITATION.cff) for a machine-readable citation file.
 
-Additionally, the **RAIL-BENCH Object** evaluation (and the AP computation in **RAIL-BENCH Rail**) builds on code from Rafael Padilla's [`review_object_detection_metrics`](https://github.com/rafaelpadilla/review_object_detection_metrics). If you publish results produced with these parts of the toolkit, please also cite:
+Additionally, the **RAIL-BENCH Object** evaluation builds on code from Rafael Padilla's [`review_object_detection_metrics`](https://github.com/rafaelpadilla/review_object_detection_metrics). If you publish results produced with these parts of the toolkit, please also cite:
 
 ```bibtex
 @article{padilla2021comparative,

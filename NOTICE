@@ -40,8 +40,6 @@ Affected files:
   - Benchmarks/RAILBENCH_Object/metrics/enumerators.py
   - Benchmarks/RAILBENCH_Object/metrics/general_utils.py
   - Benchmarks/RAILBENCH_Object/metrics/rb_evaluator.py
-  - Benchmarks/RAILBENCH_Rail/metrics/LineAP/line_ap_metric.py (partial)
-  - Benchmarks/RAILBENCH_Rail/metrics/ChamferAP/chamfer_ap.py (partial)
 
 Citation requirement (per the original project's additional clauses):
 
