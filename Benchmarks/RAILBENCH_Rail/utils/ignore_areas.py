@@ -137,7 +137,8 @@ def cut_polyline(polyline, ignore_polygons, length_threshold=20):
                         new_remaining.extend(diff.geoms)
                 else:
                     new_remaining.append(geom)
-            remaining = geometry.MultiLineString(new_remaining)
+            new_remaining = [geom for geom in new_remaining if not geom.is_empty]
+            remaining = geometry.MultiLineString(new_remaining) if new_remaining else geometry.LineString()
         
 
     if isinstance(remaining, geometry.LineString):
