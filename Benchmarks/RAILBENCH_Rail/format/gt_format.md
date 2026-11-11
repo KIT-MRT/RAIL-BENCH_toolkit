@@ -18,11 +18,13 @@
      "polygon": [[u1, v1], [u2, v2], ...], # if ignore area
      "occlusion": <occlusion_level>  # if rail
      "rightRail": <boolean> # if rail
+     "track_id": <track_id> 
      }
   ]
 }
 
 # "rightRail" is either 1 for right rail or 0 for left rail
 # occlusion levels: 0 (0-24 %), 1 (25-49 %), 2 (50-74 %), 3 (75-99 %)
+# track_id is a positive integer that serves as an identifier for the railway track (ignore areas have -1)
 
 ```
